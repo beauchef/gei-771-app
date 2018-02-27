@@ -15,4 +15,12 @@ public class SondageUrl {
     public String connexion() {
         return String.format("%s/connexion", sondageBasePath);
     }
+
+    public String sondages(String userId) {
+        return String.format("%s/usagers/%s/sondage", sondageBasePath, userId);
+    }
+
+    public String reponse(String userId, int sondageId, int questionId) {
+        return String.format("%s/usagers/%s/sondage/%d/questions/%d", sondageBasePath, userId, sondageId, questionId);
+    }
 }

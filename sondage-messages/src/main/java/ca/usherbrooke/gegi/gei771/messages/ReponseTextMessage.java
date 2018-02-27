@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 /**
  * @author beauchef on 2018-02-25.
@@ -13,9 +12,9 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserIdMessage implements Serializable {
+public class ReponseTextMessage implements Serializable {
 
-    private static final long serialVersionUID = -2622816643606473924L;
+    private static final long serialVersionUID = -130763430300692512L;
 
-    private UUID id;
+    private String text;
 }

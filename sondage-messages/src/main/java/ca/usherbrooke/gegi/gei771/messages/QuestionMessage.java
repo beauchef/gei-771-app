@@ -14,11 +14,10 @@ import java.io.Serializable;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class ReponseMessage implements Serializable {
+public class QuestionMessage implements Serializable {
 
-    private static final long serialVersionUID = 8415268922597149578L;
+    private static final long serialVersionUID = -2710697051996524985L;
 
     private int id;
     private String text;
-    private QuestionMessage question;
 }

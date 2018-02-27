@@ -9,6 +9,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.core.convert.ConversionService;
 
 import java.util.UUID;
 
@@ -21,6 +22,8 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class SondageControllerTest {
 
+    @Mock
+    private ConversionService conversionService;
     @Mock
     private UsagerRepository usagerRepository;
     @Mock
