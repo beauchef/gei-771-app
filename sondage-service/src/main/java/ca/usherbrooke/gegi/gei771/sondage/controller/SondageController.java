@@ -8,8 +8,13 @@ import ca.usherbrooke.gegi.gei771.sondage.exception.QuestionNotFoundException;
 import ca.usherbrooke.gegi.gei771.sondage.exception.SondageNotFoundException;
 import ca.usherbrooke.gegi.gei771.sondage.exception.UsagerNotFoundException;
 import ca.usherbrooke.gegi.gei771.sondage.model.Question;
+import ca.usherbrooke.gegi.gei771.sondage.model.Reponse;
+import ca.usherbrooke.gegi.gei771.sondage.model.Sondage;
 import ca.usherbrooke.gegi.gei771.sondage.model.Usager;
+import ca.usherbrooke.gegi.gei771.sondage.repository.ReponseRepository;
+import ca.usherbrooke.gegi.gei771.sondage.repository.SondageRepository;
 import ca.usherbrooke.gegi.gei771.sondage.repository.UsagerRepository;
+import lombok.extern.log4j.Log4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.convert.ConversionService;
 import org.springframework.http.HttpStatus;
@@ -17,15 +22,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 
-import ca.usherbrooke.gegi.gei771.sondage.model.Reponse;
-import ca.usherbrooke.gegi.gei771.sondage.model.Sondage;
-import ca.usherbrooke.gegi.gei771.sondage.repository.ReponseRepository;
-import ca.usherbrooke.gegi.gei771.sondage.repository.SondageRepository;
-
+import javax.validation.Valid;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
@@ -35,6 +35,7 @@ import java.util.stream.StreamSupport;
  * dans sa source de données.
  */
 @RestController
+@Log4j
 public class SondageController {
 
     private final ConversionService conversionService;
@@ -67,10 +68,9 @@ public class SondageController {
      */
     @GetMapping("/connexion")
     public UserIdMessage connect() {
-        // TODO
-        // On doit ici déterminer comment sera généré l'identifiant unique de
-        // l'utilisateur, puis le retourner.
-        return new UserIdMessage(usagerRepository.save(new Usager()).getId());
+        Usager usager = usagerRepository.save(new Usager());
+        log.info(String.format("Connexion d'un usager: %s", usager.getId()));
+        return new UserIdMessage(usager.getId());
     }
 
     /**
@@ -80,16 +80,12 @@ public class SondageController {
      *            L'identifiant unique de l'usager
      * @return La liste des sondages
      * @throws UsagerNotFoundException
-     *             Comment gère-t-on les cas où un identifiant d'usager invalide a
-     *             été fourni?
      */
     @GetMapping("/usagers/{userId}/sondage")
     public Iterable<SondageMessage> list(@PathVariable UUID userId) throws UsagerNotFoundException {
-        // TODO
-        // On doit ici valider que l'identifiant fourni est valide, puis retourner
-        // la liste de tous les sondages qui sont disponibles pour cet usager.
         Usager usager = Optional.ofNullable(usagerRepository.findOne(userId))
-            .orElseThrow(() -> new UsagerNotFoundException(String.format("Impossible de trouver l'usager avec l'identifiant '%s'.", userId.toString())));
+            .orElseThrow(() -> new UsagerNotFoundException(userId));
+        log.info(String.format("Demande de liste de sondage de l'usager: %s", usager.getId()));
         return StreamSupport.stream(sondageRepository.findAll().spliterator(), false)
             .map(s -> conversionService.convert(s, SondageMessage.class))
             .collect(Collectors.toList());
@@ -113,37 +109,21 @@ public class SondageController {
      */
     @PostMapping("/usagers/{userId}/sondage/{sondageId}/questions/{questionId}")
     public ResponseEntity<ReponseMessage> answer(@PathVariable UUID userId, @PathVariable int sondageId,
-                                                 @PathVariable int questionId, @RequestBody ReponseTextMessage reponseTextMessage)
+                                                 @PathVariable int questionId,
+                                                 @Valid @RequestBody ReponseTextMessage reponseTextMessage)
             throws UsagerNotFoundException, SondageNotFoundException, QuestionNotFoundException {
 
-        // TODO
-        // On doit ici créer une nouvelle entité Reponse avec les données fournies
-        // par l'utilisateur, puis la retourner.
-        // Attention, il pourrait y avoir des cas d'erreur à gérer!
         Assert.notNull(reponseTextMessage, "La réponse ne peut pas être nulle.");
         Usager usager = Optional.ofNullable(usagerRepository.findOne(userId))
-                .orElseThrow(() -> new UsagerNotFoundException(String.format("Impossible de trouver l'usager avec l'identifiant '%s'.", userId.toString())));
+                .orElseThrow(() -> new UsagerNotFoundException(userId));
         Sondage sondage = Optional.ofNullable(sondageRepository.findOne(sondageId))
-                .orElseThrow(() -> new SondageNotFoundException(String.format("Impossible de trouver le sondage %d.", sondageId)));
+                .orElseThrow(() -> new SondageNotFoundException(sondageId));
         Question question = sondage.getQuestions().stream()
                 .filter(q -> q.getId() == questionId)
                 .findFirst()
-                .orElseThrow(() -> new QuestionNotFoundException(String.format("Impossible de trouver la question %d pour le sondage %d.", questionId, sondageId)));
+                .orElseThrow(() -> new QuestionNotFoundException(sondageId, questionId));
 
         Reponse reponse = reponseRepository.save(new Reponse(usager, question, reponseTextMessage.getText()));
         return new ResponseEntity<>(conversionService.convert(reponse, ReponseMessage.class), HttpStatus.CREATED);
     }
-
-    @GetMapping("/usagers")
-    public Iterable<Usager> listUsagers() {
-        return usagerRepository.findAll(); // TODO remove! Test...
-    }
-
-    @GetMapping("/usagers/{userId}/reponses")
-    public Iterable<Reponse> listReponses(@PathVariable UUID userId) throws UsagerNotFoundException {
-        Usager usager = Optional.ofNullable(usagerRepository.findOne(userId))
-            .orElseThrow(() -> new UsagerNotFoundException(String.format("Impossible de trouver l'usager avec l'identifiant '%s'.", userId.toString())));
-        return usager.getReponses(); // TODO remove! Test...
-    }
-
 }

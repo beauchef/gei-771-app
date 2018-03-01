@@ -9,7 +9,7 @@ public class SondageNotFoundException extends SondageException {
 
     private static final long serialVersionUID = 1789382213659857835L;
 
-    public SondageNotFoundException(String message) {
-        super(NOT_FOUND, "Sondage introuvable.", message);
+    public SondageNotFoundException(int sondageId) {
+        super(NOT_FOUND, "Sondage introuvable.", String.format("Impossible de trouver le sondage %d.", sondageId));
     }
 }
