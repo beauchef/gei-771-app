@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 import org.springframework.util.Assert;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 
 import java.util.List;
@@ -38,12 +39,23 @@ public class CommandLineService implements CommandLineRunner {
                 System.out.println();
                 System.out.println(String.format("Sondage %d/%d: %s", numeroDeSondage, sondages.size(), sondage.getDescription()));
                 int numeroDeQuestion = 1;
-                for (QuestionMessage question : sondage.getQuestions()) {
+                while (numeroDeQuestion <= sondage.getQuestions().size()) {
+                    QuestionMessage question = sondage.getQuestions().get(numeroDeQuestion-1);
                     System.out.println(String.format("  Question %d/%d: %s", numeroDeQuestion, sondage.getQuestions().size(), question.getText()));
                     System.out.print("  > ");
                     String answer = keyboard.next();
-                    sondageService.setReponse(userId, sondage.getId(), question.getId(), answer);
-                    numeroDeQuestion++;
+                    try {
+                        sondageService.setReponse(userId, sondage.getId(), question.getId(), answer);
+                        numeroDeQuestion++;
+                    } catch (HttpStatusCodeException ex) {
+                        // traitement très rudimentaire des exceptions... je devrais plutôt me baser sur des
+                        // codes d'erreurs pour savoir comment traîter le problème.
+                        if (ex.getStatusCode().value() == 400) {
+                            System.err.println("Réponse invalide (la réponse devrait être une seule lettre en minuscule)");
+                        } else {
+                            throw ex; // rethrow
+                        }
+                    }
                 }
                 numeroDeSondage++;
             }

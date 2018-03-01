@@ -29,6 +29,7 @@
 		<maven.compiler.source>${java.version}</maven.compiler.source>
 		<maven.compiler.target>${java.version}</maven.compiler.target>
         <logback.version>1.2.3</logback.version>
+        <fuzzy.version>0.6.1</fuzzy.version>
         <maven.surefire.version>2.18.1</maven.surefire.version>
 		<maven.jacoco.version>0.8.0</maven.jacoco.version>
         <maven.pmd.version>3.9.0</maven.pmd.version>
@@ -54,6 +55,11 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+        <dependency>
+            <groupId>com.redfin</groupId>
+            <artifactId>fuzzy-junit-4</artifactId>
+            <version>${fuzzy.version}</version>
+        </dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
